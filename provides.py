@@ -14,12 +14,8 @@ from charms.reactive import set_flag, clear_flag
 from charms.reactive import Endpoint
 from charms.reactive import when_any, when_not, when
 
-from charmhelpers.contrib.network.ip import (
-    is_address_in_network,
-    resolve_network_cidr,
-)
 from charmhelpers.core.hookenv import (
-    network_get_primary_address,
+    network_get,
 )
 
 
@@ -59,15 +55,13 @@ class VaultKVProvides(Endpoint):
         """
         for relation in self.relations:
             if remote_binding:
-                units = relation.units
-                if units:
-                    addr = units[0].received['ingress-address'] or \
-                        units[0].received['access_address']
-                    bound_cidr = resolve_network_cidr(
-                        network_get_primary_address(remote_binding)
-                    )
-                    if not (addr and is_address_in_network(bound_cidr, addr)):
-                        continue
+                binding_info = network_get(remote_binding)
+                binding_nets = set(binding_info['egress-subnets'])
+                relation_info = network_get(self.endpoint_name,
+                                            relation.relation_id)
+                relation_nets = set(relation_info['egress-subnets'])
+                if not (binding_nets & relation_nets):
+                    continue
 
             relation.to_publish['vault_url'] = vault_url
 
