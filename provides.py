@@ -55,11 +55,11 @@ class VaultKVProvides(Endpoint):
         """
         for relation in self.relations:
             if remote_binding:
-                binding_info = network_get(remote_binding)
-                binding_nets = set(binding_info['egress-subnets'])
-                relation_info = network_get(self.endpoint_name,
-                                            relation.relation_id)
-                relation_nets = set(relation_info['egress-subnets'])
+                binding_nets = set(network_get(remote_binding)
+                                   ['egress-subnets'])
+                relation_nets = set(network_get(self.endpoint_name,
+                                                relation.relation_id)
+                                    ['egress-subnets'])
                 if not (binding_nets & relation_nets):
                     continue
 
